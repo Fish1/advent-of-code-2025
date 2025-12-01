@@ -1,61 +1,122 @@
 const std = @import("std");
 
-const Direction = enum {
+const RotateDirection = enum {
     LEFT,
     RIGHT,
 };
 
-const Dial = struct {
-    position: i32,
-
-    pub fn rotate(self: *Dial, direction: Direction, amount: i32) void {
-        if (direction == .LEFT) {
-            self.position = self.position - amount;
-        } else if (direction == .RIGHT) {
-            self.position = self.position + amount;
-        }
-        self.position = @mod(self.position, 100);
-    }
-
-    pub fn print(self: Dial) void {
-        std.debug.print("{d}\n", .{self.position});
-    }
-};
-
-pub fn doThing() void {
-    var dial = Dial{
-        .position = 50,
+fn rotate(current: i32, direction: RotateDirection, amount: i32) struct { passes: u32, value: i32 } {
+    const new_value = switch (direction) {
+        .LEFT => current - amount,
+        .RIGHT => current + amount,
     };
-    dial.print();
-    dial.rotate(.LEFT, 68);
-    dial.print();
-    dial.rotate(.LEFT, 30);
-    dial.print();
-    dial.rotate(.RIGHT, 48);
-    dial.print();
+
+    var passes = @abs(@divFloor(new_value, 100));
+
+    if (direction == .LEFT) {
+        if (current == 0 and passes > 0) {
+            passes = passes - 1;
+        }
+
+        if (@mod(new_value, 100) == 0) {
+            passes = passes + 1;
+        }
+    }
+
+    return .{
+        .passes = passes,
+        .value = @mod(new_value, 100),
+    };
 }
 
-test "do a test thing" {
-    const allocator = std.testing.allocator;
-    // try std.fs.cwd().makeDir("testing");
-    const file = try std.fs.cwd().openFile("./src/day1/input.txt", .{});
+pub fn find_password(dial_position_start: i32, directions: []const u8) !i32 {
+    var dial_position = dial_position_start;
+    var password: i32 = 0;
+    var buffer: [128]u8 = undefined;
+
+    const file = try std.fs.cwd().openFile(directions, .{});
     defer file.close();
 
-    //  var buffer: [4096]u8 = undefined;
-    // var reader = std.fs.File.stdin().reader(&buffer);
+    var reader = file.reader(&buffer);
 
-    const content = try file.readToEndAlloc(allocator, std.math.maxInt(usize));
+    while (true) {
+        const line = reader.interface.takeDelimiterInclusive('\n') catch |err| {
+            switch (err) {
+                error.EndOfStream, error.ReadFailed => break,
+                else => return err,
+            }
+        };
 
-    std.debug.print("{s}\n", .{content});
+        if (line[0] == '\n') {
+            break;
+        }
 
-    var dial = Dial{
-        .position = 50,
-    };
-    dial.print();
-    dial.rotate(.LEFT, 68);
-    dial.print();
-    dial.rotate(.LEFT, 30);
-    dial.print();
-    dial.rotate(.RIGHT, 48);
-    dial.print();
+        const direction_string = line[0];
+        const direction = switch (direction_string) {
+            'L' => RotateDirection.LEFT,
+            'R' => RotateDirection.RIGHT,
+            else => unreachable,
+        };
+        var line_reader = std.Io.Reader{ .vtable = undefined, .buffer = line[1..], .seek = 0, .end = line.len - 1 };
+        const amount_string = try line_reader.takeDelimiterExclusive('\n');
+        const amount = try std.fmt.parseInt(i32, amount_string, 10);
+
+        dial_position = rotate(dial_position, direction, amount).value;
+
+        if (dial_position == 0) {
+            password = password + 1;
+        }
+    }
+
+    return password;
+}
+
+pub fn find_password_434C49434B(dial_position_start: i32, directions: []const u8) !u32 {
+    var dial_position = dial_position_start;
+    var password: u32 = 0;
+    var buffer: [128]u8 = undefined;
+
+    const file = try std.fs.cwd().openFile(directions, .{});
+    defer file.close();
+
+    var reader = file.reader(&buffer);
+
+    while (true) {
+        const line = reader.interface.takeDelimiterInclusive('\n') catch |err| {
+            switch (err) {
+                error.EndOfStream, error.ReadFailed => break,
+                else => return err,
+            }
+        };
+
+        if (line[0] == '\n') {
+            break;
+        }
+
+        const direction_string = line[0];
+        const direction = switch (direction_string) {
+            'L' => RotateDirection.LEFT,
+            'R' => RotateDirection.RIGHT,
+            else => unreachable,
+        };
+        var line_reader = std.Io.Reader{ .vtable = undefined, .buffer = line[1..], .seek = 0, .end = line.len - 1 };
+        const amount_string = try line_reader.takeDelimiterExclusive('\n');
+        const amount = try std.fmt.parseInt(i32, amount_string, 10);
+
+        const rotate_result = rotate(dial_position, direction, amount);
+        dial_position = rotate_result.value;
+        password = password + rotate_result.passes;
+    }
+
+    return password;
+}
+
+test "find password on test input" {
+    const password = try find_password(50, "./src/day1/test_input.txt");
+    try std.testing.expectEqual(3, password);
+}
+
+test "find password 434C49434B on test input" {
+    const password = try find_password_434C49434B(50, "./src/day1/test_input.txt");
+    try std.testing.expectEqual(6, password);
 }
