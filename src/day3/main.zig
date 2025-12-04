@@ -26,7 +26,7 @@ pub fn total_jolts(input: []const u8, batteries: usize) !usize {
 
         for (0..batteries) |index| {
             const diff = batteries - index - 1;
-            const largest_index = largest_index_not_last(line, start_index, line.len - diff - 1);
+            const largest_index = find_largest_index(line, start_index, line.len - diff - 1);
             const largest_value = line[largest_index] - 48;
             jolts = jolts + (largest_value * std.math.pow(usize, 10, diff));
             start_index = largest_index + 1;
@@ -38,7 +38,7 @@ pub fn total_jolts(input: []const u8, batteries: usize) !usize {
     return total;
 }
 
-fn largest_index_not_last(number: []const u8, start: usize, end: usize) usize {
+fn find_largest_index(number: []const u8, start: usize, end: usize) usize {
     var largest_index: usize = start;
     var largest_value = number[start];
     for (start..end) |i| {
@@ -60,4 +60,3 @@ test "test twelve batteries" {
     const total = try total_jolts("./src/day3/test_input.txt", 12);
     try std.testing.expectEqual(3121910778619, total);
 }
-
