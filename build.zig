@@ -14,8 +14,13 @@ pub fn build(b: *std.Build) void {
         .target = target,
     });
 
-    const day3 = b.addModule("day2", .{
+    const day3 = b.addModule("day3", .{
         .root_source_file = b.path("src/day3/main.zig"),
+        .target = target,
+    });
+
+    const day4 = b.addModule("day4", .{
+        .root_source_file = b.path("src/day4/main.zig"),
         .target = target,
     });
 
@@ -29,6 +34,7 @@ pub fn build(b: *std.Build) void {
                 .{ .name = "day1", .module = day1 },
                 .{ .name = "day2", .module = day2 },
                 .{ .name = "day3", .module = day3 },
+                .{ .name = "day4", .module = day4 },
             },
         }),
     });
@@ -61,6 +67,11 @@ pub fn build(b: *std.Build) void {
     });
     const run_day3_tests = b.addRunArtifact(day3_tests);
 
+    const day4_tests = b.addTest(.{
+        .root_module = day4,
+    });
+    const run_day4_tests = b.addRunArtifact(day4_tests);
+
     const exe_tests = b.addTest(.{
         .root_module = exe.root_module,
     });
@@ -70,5 +81,6 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_day1_tests.step);
     test_step.dependOn(&run_day2_tests.step);
     test_step.dependOn(&run_day3_tests.step);
+    test_step.dependOn(&run_day4_tests.step);
     test_step.dependOn(&run_exe_tests.step);
 }
