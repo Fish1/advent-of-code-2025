@@ -23,6 +23,9 @@ pub fn main() !void {
     const answer_day3_part2 = try day3.total_jolts("./src/day3/input.txt", 12);
     std.debug.print("day3 part2: {d}\n", .{answer_day3_part2});
 
-    const answer_day4_part1 = try day4.accessible_rolls("./src/day4/input.txt");
+    const answer_day4_part1 = try day4.accessible_rolls("./src/day4/input.txt", .SINGLE_PASS);
     std.debug.print("day4 part1: {d}\n", .{answer_day4_part1});
+
+    const answer_day4_part2 = try day4.accessible_rolls("./src/day4/input.txt", .MULTIPLE_PASS);
+    std.debug.print("day4 part2: {d}\n", .{answer_day4_part2});
 }
