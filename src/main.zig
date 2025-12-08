@@ -3,6 +3,7 @@ const day1 = @import("day1");
 const day2 = @import("day2");
 const day3 = @import("day3");
 const day4 = @import("day4");
+const day5 = @import("day5");
 
 pub fn main() !void {
     const answer_day1_part1 = try day1.find_password(50, "./src/day1/input.txt");
@@ -28,4 +29,7 @@ pub fn main() !void {
 
     const answer_day4_part2 = try day4.accessible_rolls("./src/day4/input.txt", .MULTIPLE_PASS);
     std.debug.print("day4 part2: {d}\n", .{answer_day4_part2});
+
+    const answer_day5_part1 = try day5.fresh_ingredients("./src/day5/input.txt");
+    std.debug.print("day5 part1: {d}\n", .{answer_day5_part1});
 }
